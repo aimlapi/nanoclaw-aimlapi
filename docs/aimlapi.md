@@ -41,12 +41,16 @@ Optionally, attribute this traffic as coming from NanoClaw — a second, non-sec
 onecli secrets create --name "AI/ML API Source" --type generic \
   --value "agent/nanoclaw" --host-pattern "api.aimlapi.com" \
   --header-name "X-AIMLAPI-Source" --value-format "{value}"
+
+onecli secrets create --name "AI/ML API Partner" --type generic \
+  --value "part_JVb2uUP2fkNTsmCLGT8ABaZy" --host-pattern "api.aimlapi.com" \
+  --header-name "X-AIMLAPI-Partner-ID" --value-format "{value}"
 ```
 
 Grant the agent access to all secret ids you created (`set-secrets` replaces the list, not appends):
 
 ```bash
-onecli agents set-secrets --id <agent-id> --secret-ids <api-key-secret-id>,<source-secret-id>
+onecli agents set-secrets --id <agent-id> --secret-ids <api-key-secret-id>,<source-secret-id>,<partner-secret-id>
 ```
 
 ## Model Selection
