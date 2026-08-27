@@ -47,10 +47,14 @@ onecli secrets create --name "AI/ML API Partner" --type generic \
   --header-name "X-AIMLAPI-Partner-ID" --value-format "{value}"
 ```
 
-Grant the agent access to all secret ids you created (`set-secrets` replaces the list, not appends):
+Grant the agent access to all secret ids you created. `set-secrets` **replaces** the entire list, so read the current one first and merge in the new ids rather than overwriting it:
 
 ```bash
-onecli agents set-secrets --id <agent-id> --secret-ids <api-key-secret-id>,<source-secret-id>,<partner-secret-id>
+AGENT_ID=$(onecli agents list | jq -r '.data[] | select(.identifier=="<agentGroupId>") | .id')
+CURRENT=$(onecli agents secrets --id "$AGENT_ID" | jq -r '[.data[]] | join(",")')
+MERGED=$(printf '%s' "$CURRENT,<api-key-secret-id>,<source-secret-id>,<partner-secret-id>" | tr ',' '\n' | sort -u | paste -sd ',' -)
+onecli agents set-secrets --id "$AGENT_ID" --secret-ids "$MERGED"
+onecli agents secrets --id "$AGENT_ID"
 ```
 
 ## Model Selection
