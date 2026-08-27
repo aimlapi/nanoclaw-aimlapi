@@ -23,11 +23,36 @@ setup (which injects the latter) needs no changes.
 
 ## Setup
 
-```env
-ANTHROPIC_BASE_URL=https://api.aimlapi.com
+`ANTHROPIC_BASE_URL` in `.env` is necessary but **not sufficient** —
+`src/providers/claude.ts` (the file that reads it) is only loaded when
+`import './claude.js';` is present in `src/providers/index.ts`; standard
+installs hitting `api.anthropic.com` never load it. Setup adds that import
+for you when it runs the custom-endpoint flow — pick one:
+
+**Fresh install or re-running setup:**
+
+```bash
+NANOCLAW_ANTHROPIC_BASE_URL=https://api.aimlapi.com \
+NANOCLAW_ANTHROPIC_AUTH_TOKEN=YOUR_KEY \
+  pnpm run setup:auto
 ```
 
-Register the key — same pattern as [`add-opencode`](../.claude/skills/add-opencode/SKILL.md)'s examples, `Authorization: Bearer {value}`:
+**Existing install, just adding this later** — the same flow via the
+standalone re-entry point, no need to redo the rest of setup:
+
+```bash
+NANOCLAW_ANTHROPIC_BASE_URL=https://api.aimlapi.com \
+NANOCLAW_ANTHROPIC_AUTH_TOKEN=YOUR_KEY \
+  pnpm exec tsx setup/index.ts --step provider-auth claude
+```
+
+Either creates the OneCLI secret, writes `ANTHROPIC_BASE_URL` to `.env`, and
+appends the `claude.js` import automatically — nothing manual to do beyond
+that. (Doing it by hand instead: run the `onecli secrets create` command
+below yourself, add `ANTHROPIC_BASE_URL=https://api.aimlapi.com` to `.env`,
+**and** append `import './claude.js';` to the end of
+`src/providers/index.ts` — skipping that last line is the whole bug this
+section exists to head off.)
 
 ```bash
 onecli secrets create --name "AI/ML API" --type generic \
