@@ -23,13 +23,9 @@ setup (which injects the latter) needs no changes.
 
 ## Setup
 
-`ANTHROPIC_BASE_URL` in `.env` is necessary but **not sufficient** —
-`src/providers/claude.ts` (the file that reads it) is only loaded when
-`import './claude.js';` is present in `src/providers/index.ts`; standard
-installs hitting `api.anthropic.com` never load it. Setup adds that import
-for you when it runs the custom-endpoint flow — pick one:
+`ANTHROPIC_BASE_URL` in `.env` alone does nothing: `src/providers/claude.ts` (the file that reads it) is only loaded when `src/providers/index.ts` contains `import './claude.js';`, and standard installs never add that line. Two ways to get there:
 
-**Fresh install or re-running setup:**
+**Fresh install** — run setup with the custom-endpoint variables. It creates the OneCLI secret, writes `ANTHROPIC_BASE_URL` to `.env` and appends the import for you:
 
 ```bash
 NANOCLAW_ANTHROPIC_BASE_URL=https://api.aimlapi.com \
@@ -37,28 +33,20 @@ NANOCLAW_ANTHROPIC_AUTH_TOKEN=YOUR_KEY \
   pnpm run setup:auto
 ```
 
-**Existing install, just adding this later** — the same flow via the
-standalone re-entry point, no need to redo the rest of setup:
+Setup skips this flow when OneCLI already holds an Anthropic secret, so on an existing install use the manual path instead.
 
-```bash
-NANOCLAW_ANTHROPIC_BASE_URL=https://api.aimlapi.com \
-NANOCLAW_ANTHROPIC_AUTH_TOKEN=YOUR_KEY \
-  pnpm exec tsx setup/index.ts --step provider-auth claude
-```
+**Existing install** — three steps by hand:
 
-Either creates the OneCLI secret, writes `ANTHROPIC_BASE_URL` to `.env`, and
-appends the `claude.js` import automatically — nothing manual to do beyond
-that. (Doing it by hand instead: run the `onecli secrets create` command
-below yourself, add `ANTHROPIC_BASE_URL=https://api.aimlapi.com` to `.env`,
-**and** append `import './claude.js';` to the end of
-`src/providers/index.ts` — skipping that last line is the whole bug this
-section exists to head off.)
+1. Register the key:
 
 ```bash
 onecli secrets create --name "AI/ML API" --type generic \
   --value YOUR_KEY --host-pattern "api.aimlapi.com" \
   --header-name "Authorization" --value-format "Bearer {value}"
 ```
+
+2. Add `ANTHROPIC_BASE_URL=https://api.aimlapi.com` to `.env`.
+3. Append `import './claude.js';` to `src/providers/index.ts` and restart NanoClaw.
 
 Optionally, attribute this traffic as coming from NanoClaw — a second, non-secret "credential" injecting a static header alongside the real key (the gateway applies every matching rule, not just one):
 
